@@ -1,14 +1,14 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from openai import OpenAI
 import pytesseract
 from PIL import Image
-import openai
 import os
 import io
 
 app = FastAPI()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,8 +28,7 @@ async def upload_file(file: UploadFile = File(...)):
         if not extracted_text.strip():
             return {"reply": "❌ Не удалось распознать текст на изображении."}
 
-        # Отправляем распознанный текст в GPT
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Ты — финансовый помощник. Анализируй текст из документов и объясняй простым языком, что важно."},
